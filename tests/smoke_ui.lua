@@ -42,8 +42,8 @@ for _, retail in ipairs({ true, false }) do
   end
   cleu("PARTY_KILL", "ME", "Hero", 0x511, "E1", "Fizz-Away", enemy)
   check(db.total.kills == 1 and db.races.Gnome.unlockedAt, "kill unlocks race")
-  -- Task 6 runs separately: assert unlocks only, not the Blooded title yet.
-  check(#queue == 2 and queue[1].kind == "unlock" and queue[2].kind == "unlock", "race/class unlocks")
+  check(#queue == 3 and queue[1].kind == "unlock" and queue[2].kind == "unlock", "race/class unlocks")
+  check(queue[3].kind == "title" and queue[3].title == "Blooded", "first kill earns Blooded")
   check(db.players.E1.realm == "Away", "identity realm")
   cleu("SPELL_DAMAGE", "E1", "Fizz-Away", enemy, "ME", "Hero", 0x511)
   env.fire("PLAYER_DEAD")
