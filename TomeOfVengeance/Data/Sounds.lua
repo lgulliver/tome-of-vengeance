@@ -9,14 +9,12 @@ local Sounds = {}
 -- ns.Compat.playSound.
 Sounds.LIST = {
   unlock = {
-    { key = "LEVEL_UP", label = "Level up" },
     { key = "READY_CHECK", label = "Ready check" },
     { key = "UI_BATTLEGROUND_COUNTDOWN_FINISHED", label = "Battleground countdown" },
   },
   title = {
     { key = "PVP_THROUGH_QUEUE", label = "PvP queue ready" },
     { key = "RAID_WARNING", label = "Raid warning" },
-    { key = "LEVEL_UP", label = "Level up" },
   },
   nemesis = {
     { key = "RAID_WARNING", label = "Raid warning" },

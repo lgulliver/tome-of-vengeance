@@ -6,7 +6,7 @@ Store.DEFAULTS = {
   version = 1,
   settings = {
     alerts = true, sound = true, nemesisThreshold = 3, minimap = true,
-    sounds = { unlock = "LEVEL_UP", title = "PVP_THROUGH_QUEUE", nemesis = "RAID_WARNING" },
+    sounds = { unlock = "READY_CHECK", title = "PVP_THROUGH_QUEUE", nemesis = "RAID_WARNING" },
   },
   players = {}, races = {}, classes = {}, total = { kills = 0, deaths = 0 },
   titles = {}, ledger = {}, factionsSeen = {},

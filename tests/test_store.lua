@@ -5,7 +5,7 @@ T.test("migrate_fills_defaults", function()
   T.eq(db.version, 1)
   T.eq(db.settings, {
     alerts = true, sound = true, nemesisThreshold = 3, minimap = true,
-    sounds = { unlock = "LEVEL_UP", title = "PVP_THROUGH_QUEUE", nemesis = "RAID_WARNING" },
+    sounds = { unlock = "READY_CHECK", title = "PVP_THROUGH_QUEUE", nemesis = "RAID_WARNING" },
   })
   T.eq(db.total, { kills = 0, deaths = 0 })
   for _, key in ipairs({ "players", "races", "classes", "titles", "ledger", "factionsSeen" }) do
@@ -22,7 +22,7 @@ T.test("migrate_keeps_existing", function()
   T.eq(db.settings.alerts, false)
   T.eq(db.settings.sound, true)
   T.eq(db.settings.sounds.title, "CUSTOM")
-  T.eq(db.settings.sounds.unlock, "LEVEL_UP")
+  T.eq(db.settings.sounds.unlock, "READY_CHECK")
   T.eq(db.total, { kills = 9, deaths = 1 })
   T.eq(db.players.G1.kills, 4)
   T.eq(db.activeTitle, "earned")

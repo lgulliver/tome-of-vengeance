@@ -87,6 +87,24 @@ function Diag.snapshot()
   }
 end
 
+function Diag.recap()
+  local link = GetDeathRecapLink and select(2, pcall(GetDeathRecapLink))
+  local id = type(link) == "string" and not (issecretvalue and issecretvalue(link)) and tonumber(link:match("death:(%d+)"))
+  local recap = { link = safe(link), id = id }
+  if C_DeathRecap then
+    recap.has = try(C_DeathRecap.HasRecapEvents, id)
+    recap.events = try(C_DeathRecap.GetRecapEvents, id)
+    recap.maxHealth = try(C_DeathRecap.GetRecapMaxHealth, id)
+    recap.noId = try(C_DeathRecap.GetRecapEvents)
+  end
+  return recap
+end
+
+local function unitInfo(guid)
+  if type(guid) ~= "string" or (issecretvalue and issecretvalue(guid)) then return safe(guid) end
+  return { guid = guid, player = try(GetPlayerInfoByGUID, guid), mine = guid == (UnitGUID and UnitGUID("player")) }
+end
+
 local frame = CreateFrame("Frame")
 frame:SetScript("OnEvent", function(_, event, ...)
   local args = { ... }
@@ -94,25 +112,23 @@ frame:SetScript("OnEvent", function(_, event, ...)
     if event == "PLAYER_LOGIN" then
       Diag.snapshot()
     elseif event == "PLAYER_DEAD" then
-      local recap = {
-        link = try(GetDeathRecapLink),
-        recap = C_DeathRecap and try(C_DeathRecap.GetRecapEvents) or "<no C_DeathRecap>",
-      }
-      log(event, recap)
+      log(event, Diag.recap())
       -- The recap can fill in a moment after death.
       if C_Timer and C_Timer.After then
-        C_Timer.After(2, function()
-          pcall(log, "PLAYER_DEAD+2s", {
-            link = try(GetDeathRecapLink),
-            recap = C_DeathRecap and try(C_DeathRecap.GetRecapEvents) or "<no C_DeathRecap>",
-          })
-        end)
+        C_Timer.After(2, function() pcall(log, "PLAYER_DEAD+2s", Diag.recap()) end)
       end
+    elseif event == "PARTY_KILL" or event == "UNIT_DIED" then
+      local info = { args = safe(args) }
+      for i, value in ipairs(args) do
+        if type(value) == "string" and value:match("^%a+%-") then info["guid" .. i] = unitInfo(value) end
+      end
+      log(event, info)
     else
       log(event, { args = safe(args), lifetime = try(GetPVPLifetimeStats) })
     end
   end)
 end)
-for _, event in ipairs({ "PLAYER_LOGIN", "PLAYER_DEAD", "CHAT_MSG_COMBAT_HONOR_GAIN", "PLAYER_PVP_KILLS_CHANGED" }) do
+for _, event in ipairs({ "PLAYER_LOGIN", "PLAYER_DEAD", "CHAT_MSG_COMBAT_HONOR_GAIN", "PLAYER_PVP_KILLS_CHANGED",
+  "PARTY_KILL", "UNIT_DIED" }) do
   pcall(frame.RegisterEvent, frame, event)
 end
