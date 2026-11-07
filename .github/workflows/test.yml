@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install LuaJIT
+        run: sudo apt-get update && sudo apt-get install -y luajit
+
+      # Core and Data unit tests, then a headless run of the real UI against the WoW API stub.
+      - name: Unit tests
+        run: luajit tests/run.lua
+
+      - name: UI smoke
+        run: |
+          if [ -f tests/smoke_ui.lua ]; then
+            luajit tests/smoke_ui.lua
+          fi
+
+      - name: Syntax
+        run: luajit tests/syntax.lua

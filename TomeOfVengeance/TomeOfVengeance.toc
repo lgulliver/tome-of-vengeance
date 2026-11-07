@@ -1,0 +1,10 @@
+## Interface: 120100, 120105, 120107, 16001
+## Title: Tome of Vengeance
+## Notes: Remember every foe you've slain and every foe who slew you.
+## SavedVariables: TomeOfVengeanceDB
+## Version: 0.1.0
+## AddonCompartmentFunc: TomeOfVengeance_OnCompartmentClick
+
+# Data files precede Core files as they are implemented.
+Core/Store.lua
+# Compat.lua, UI files, and TomeOfVengeance.lua follow Core as implemented.
