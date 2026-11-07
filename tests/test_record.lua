@@ -30,6 +30,7 @@ T.test("first_kill_unlocks_once", function()
   local db = ns.Store.migrate({})
   T.eq(ns.Record.kill(db, { guid = "G1", raceFile = "Gnome" }, context(0)), {
     { kind = "unlock", header = "Tome of Vengeance Unlocked", title = "Gnomes", reason = "First Gnome slain" },
+    { kind = "title", header = "Tome of Vengeance Unlocked", title = "Blooded", reason = "First foe slain" },
   })
   T.eq(ns.Record.kill(db, { guid = "G2", raceFile = "Gnome" }, context(200)), {})
   T.eq(db.races.Gnome.unlockedAt, 0)
@@ -45,6 +46,7 @@ T.test("class_unlock_uses_localized_display_names", function()
       reason = "First Gnome slain" },
     { kind = "unlock", header = "Tome of Vengeance Unlocked", title = "Localized Mage",
       reason = "First Mage slain" },
+    { kind = "title", header = "Tome of Vengeance Unlocked", title = "Blooded", reason = "First foe slain" },
   })
   T.eq(ns.Record.kill(db, who, context(200)), {})
 end)
@@ -53,12 +55,15 @@ T.test("class_unlock_falls_back_to_plural", function()
   local db = ns.Store.migrate({})
   T.eq(ns.Record.kill(db, { guid = "G1", classFile = "MAGE" }, context()), {
     { kind = "unlock", header = "Tome of Vengeance Unlocked", title = "Mages", reason = "First Mage slain" },
+    { kind = "title", header = "Tome of Vengeance Unlocked", title = "Blooded", reason = "First foe slain" },
   })
 end)
 
 T.test("unknown_race_no_credit", function()
   local db = ns.Store.migrate({})
-  T.eq(ns.Record.kill(db, { guid = "G1", name = "Fizz" }, context()), {})
+  T.eq(ns.Record.kill(db, { guid = "G1", name = "Fizz" }, context()), {
+    { kind = "title", header = "Tome of Vengeance Unlocked", title = "Blooded", reason = "First foe slain" },
+  })
   T.eq(db.players.G1.name, "Fizz")
   T.eq(db.players.G1.kills, 1)
   T.eq(db.total.kills, 1)
@@ -73,8 +78,9 @@ T.test("backfill_does_not_retro_credit", function()
   ns.Store.player(db, enemy(), context(102))
   T.eq(db.races, {})
   T.eq(db.classes, {})
+  -- Race and class unlock, plus revenge for the death at 101; Blooded came with the first kill.
   local anns = ns.Record.kill(db, { guid = "G1" }, context(200))
-  T.eq(#anns, 2)
+  T.eq(#anns, 3)
   T.eq(db.players.G1.kills, 2)
   T.eq(db.players.G1.deaths, 1)
   T.eq(db.races.Gnome, { kills = 1, deaths = 0, unlockedAt = 200 })
@@ -99,7 +105,8 @@ T.test("death_sets_killedMeAt", function()
   T.eq(db.ledger[2], { t = 150, kind = "death", guid = "G1", zone = "Duskwood", ctxKind = "arena" })
   T.eq(rec.first.t, 100)
   T.eq(rec.last.t, 150)
-  T.eq(#ns.Record.kill(db, enemy(), context(160)), 2)
+  -- Race, class, Blooded, and revenge within 300 s of being slain.
+  T.eq(#ns.Record.kill(db, enemy(), context(160)), 4)
   T.eq(rec.killedMeAt, 150)
 end)
 
