@@ -24,6 +24,7 @@ end
 local function record(db, who, ctx, kind, field, counter)
   local rec = ns.Store.player(db, who, ctx)
   local anns = {}
+  local wasNemesis = kind == "kill" and ns.Nemesis.is(rec, db.settings.nemesisThreshold)
   rec[field] = rec[field] + 1
   rec.ctx[ctx.kind][counter] = rec.ctx[ctx.kind][counter] + 1
   local char = rec.chars[ctx.char]
@@ -42,6 +43,11 @@ local function record(db, who, ctx, kind, field, counter)
     t = ctx.now, kind = kind, guid = who.guid, zone = ctx.zone, ctxKind = ctx.kind,
   }
   while #db.ledger > Record.LEDGER_MAX do table.remove(db.ledger, 1) end
+  if kind == "kill" then
+    for _, ann in ipairs(ns.Titles.evaluate(db, rec, ctx, wasNemesis)) do
+      anns[#anns + 1] = ann
+    end
+  end
   return anns
 end
 
