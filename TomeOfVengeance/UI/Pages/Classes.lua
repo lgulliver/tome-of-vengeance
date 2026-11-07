@@ -1,0 +1,3 @@
+local _, ns = ...
+
+ns.UI.Book.registerSection("classes", ns.UI.Book.collection("class", "Roll of Callings"))

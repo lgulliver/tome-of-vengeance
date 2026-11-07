@@ -1,4 +1,4 @@
--- Headless glue smoke. Book remains stubbed; Toast is the real module.
+-- Headless smoke of the real addon UI.
 local function check(value, message) assert(value, message) end
 local function near(a, b) return math.abs(a - b) < 0.01 end
 
@@ -8,18 +8,11 @@ for _, retail in ipairs({ true, false }) do
     env.WOW_PROJECT_ID = 2
     env.issecretvalue = nil
     env.Settings = nil
+    env.GetClientDisplayExpansionLevel = function() return 0 end
   end
 
   local recorded, sounds = {}, {}
-  local shown, section = false, nil
-  local ns = { UI = {
-    Book = {
-      create = function() end,
-      toggle = function() shown = not shown end,
-      open = function(id) shown, section = true, id end,
-      isShown = function() return shown end,
-    },
-  } }
+  local ns = {}
 
   local toc = assert(io.open("TomeOfVengeance/TomeOfVengeance.toc"))
   for line in toc:lines() do
@@ -53,6 +46,20 @@ for _, retail in ipairs({ true, false }) do
   check(ns.Compat.isRetail() == retail, "flavour")
   check(ns.Compat.context().char == "Hero-Home", "character key")
 
+  local Book = ns.UI.Book
+  check(Book, "real Book module loaded")
+  Book.toggle()
+  local book = env.TomeOfVengeanceBook
+  check(Book.isShown() and book.section == "races", "book defaults to races")
+  check(env.UISpecialFrames[1] == book:GetName(), "Escape frame registered")
+  if not retail then
+    check(#book.leftPage.rows == 4, "Classic Horde sees four races")
+    for _, row in ipairs(book.leftPage.rows) do
+      check(row.label:GetText() == "???" and row.count:GetText() == "???", "locked rows hide name and count")
+    end
+  end
+  Book.toggle()
+
   local enemy = 0x540
   local function cleu(sub, source, sourceName, flags, dest, destName, destFlags)
     env.cleu = { 100, sub, false, source, sourceName, flags, 0, dest, destName, destFlags, 0 }
@@ -65,6 +72,59 @@ for _, retail in ipairs({ true, false }) do
   check(recorded[1].kind == "unlock" and recorded[2].kind == "unlock", "race/class unlock announcements")
   check(recorded[3].kind == "title" and recorded[3].title == "Blooded", "first kill earns Blooded")
   check(db.players.E1.realm == "Away", "identity realm")
+
+  Book.open("races", "Gnome")
+  check(book.rightPage.stats:GetText():find("Slain: 1", 1, true), "race entry shows kill")
+  local gnome
+  for _, row in ipairs(book.leftPage.rows) do if row.key == "Gnome" then gnome = row end end
+  check(gnome and gnome.count:GetText() == "1" and gnome.label:GetText() == "Gnome", "race unlock refreshed")
+  gnome:Click()
+  check(book.key == "Gnome", "index click selects entry")
+  if retail then
+    book.leftPaper.scroll:GetScript("OnMouseWheel")(book.leftPaper.scroll, -100)
+    check(book.leftPaper.scroll:GetVerticalScroll() > 0, "long roster scrolls")
+  end
+  Book.open("classes", "MAGE")
+  check(book.rightPage.stats:GetText():find("Slain: 1", 1, true), "class entry shows kill")
+  local mage
+  for _, row in ipairs(book.leftPage.rows) do if row.key == "MAGE" then mage = row end end
+  check(near(select(1, mage.label:GetTextColor()), env.RAID_CLASS_COLORS.MAGE.r), "class colour")
+  check(#book.tabs == 6, "six top section links")
+  for _, id in ipairs({ "nemeses", "ledger", "titles", "settings" }) do
+    Book.open(id)
+    check(book.section == id, "placeholder section opens: " .. id)
+  end
+  Book.open("races", "Human")
+  check(book.rightPage.prompt:GetText() == "Slay one to fill this page.", "locked entry prompt")
+  db.activeTitle = "total:1"
+  Book.open("races", "Gnome")
+  check(book.activeTitle:GetText() == "Blooded", "header active title")
+  book:SetPoint("CENTER", env.UIParent, "CENTER", 25, -35)
+  book:GetScript("OnDragStop")(book)
+  check(db.settings.bookPos.x == 25 and db.settings.bookPos.y == -35, "drag position saved")
+  Book.toggle()
+  local function contains(host, value)
+    for _, child in ipairs(host._children) do
+      if child._shown ~= false or child._kind == "FontString" then
+        if child._text and child._text:find(value, 1, true) then return true end
+      end
+    end
+    return false
+  end
+  db.races.Gnome.kills = 211
+  db.titles["race:Gnome:10"] = 1000
+  Book.open("races", "Gnome")
+  check(contains(book.rightPage, "Next title at 250: Bane of the Tinkerers"), "next tier rendered")
+  check(contains(book.rightPage, "Gnome Punter (10)"), "earned title rendered")
+  check(contains(book.rightPage, "Fizz-Away"), "most slain rendered")
+  db.races.Gnome.kills = 1000
+  Book.open("races", "Gnome")
+  check(contains(book.rightPage, "Every title earned"), "final tier rendered")
+  db.races.Gnome.kills = 1
+  local frameCount = #env.frames
+  for _ = 1, 5 do Book.open("races", "Gnome") end
+  check(#env.frames == frameCount, "repeated navigation reuses frames")
+  Book.toggle()
 
   env.advance(4.5)
   check(ns.UI.Toast.queueLength() == 2, "two toasts remain after 4s")
@@ -121,11 +181,11 @@ for _, retail in ipairs({ true, false }) do
   check(#recorded == length, "sightings throttled")
 
   env.SlashCmdList.TOMEOFVENGEANCE("")
-  check(shown, "slash toggles")
+  check(Book.isShown(), "slash toggles")
   env.TomeOfVengeance_OnCompartmentClick()
-  check(not shown, "compartment toggles")
+  check(not Book.isShown(), "compartment toggles")
   env.SlashCmdList.TOMEOFVENGEANCE("settings")
-  check(section == "settings", "settings opens")
+  check(Book.isShown() and book.section == "settings", "settings opens")
   env.SlashCmdList.TOMEOFVENGEANCE("reset")
   check(ns.App.db == db and db.total.kills == kills, "reset requires confirmation")
   env.StaticPopupDialogs.TOMEOFVENGEANCE_RESET.OnAccept()
