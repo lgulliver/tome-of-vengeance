@@ -1,0 +1,84 @@
+<style>
+  .tome { background:#2a1a10; border:3px solid #6b4a2b; border-radius:6px; padding:10px; box-shadow:0 4px 18px rgba(0,0,0,.5); font-family: Georgia, 'Times New Roman', serif; color:#3b2614; }
+  .page { background:linear-gradient(135deg,#f3e3bf,#e2c993); border-radius:3px; padding:12px; min-height:260px; box-shadow: inset 0 0 22px rgba(120,80,30,.35); }
+  .spread { display:flex; gap:4px; }
+  .spread .page { flex:1; }
+  .gutter { width:6px; background:linear-gradient(90deg,#8a6a40,#4a3018,#8a6a40); }
+  .ttl { font-variant:small-caps; font-size:18px; border-bottom:1px solid #a07a48; margin-bottom:8px; color:#5a1a0a; }
+  .row { display:flex; justify-content:space-between; font-size:13px; padding:2px 0; border-bottom:1px dotted #c0a070; }
+  .locked { color:#9a8460; font-style:italic; }
+  .lvl { font-size:11px; color:#7a5a30; }
+  .bar { height:6px; background:#c9ad7c; border-radius:3px; margin:4px 0 8px; } .bar i { display:block; height:100%; background:#8a1c10; border-radius:3px; }
+  .tabs { display:flex; flex-direction:column; gap:3px; margin-left:-2px; }
+  .tab { background:#7a1e12; color:#f3e3bf; font-size:11px; padding:6px 8px; border-radius:0 4px 4px 0; font-variant:small-caps; }
+  .tab.on { background:#c9ad7c; color:#3b2614; }
+  .toast { margin-top:10px; background:#1b120b; border:2px solid #c9a24a; color:#f0d58a; text-align:center; padding:8px; font-family:Georgia,serif; border-radius:4px; }
+  .toast b { display:block; font-size:16px; color:#ffe7a0; font-variant:small-caps; }
+  .cap { font-size:12px; color:#7a5a30; margin-top:6px; font-style:italic; }
+</style>
+
+<h2>The Tome: which layout feels right?</h2>
+<p class="subtitle">Rough look only. Art, fonts, and textures get polished later. Click one, then reply in the terminal.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="tome">
+        <div class="spread">
+          <div class="page">
+            <div class="ttl">Bestiary of Foes</div>
+            <div class="row"><span>Humans</span><span>142</span></div>
+            <div class="row"><span>Dwarves</span><span>67</span></div>
+            <div class="row"><span>Gnomes</span><span>211</span></div>
+            <div class="row"><span>Night Elves</span><span>38</span></div>
+            <div class="row locked"><span>Draenei</span><span>???</span></div>
+            <div class="row locked"><span>Worgen</span><span>???</span></div>
+          </div>
+          <div class="gutter"></div>
+          <div class="page">
+            <div class="ttl">Gnomes</div>
+            <div class="lvl">Slain: 211 &middot; Slain by: 19</div>
+            <div class="bar"><i style="width:84%"></i></div>
+            <div class="lvl">Next title at 250: <b>Bane of the Tinkerers</b></div>
+            <div style="margin-top:10px;font-size:12px"><b>Titles earned</b><br>Gnome Punter (10)<br>Scourge of Gnomeregan (100)</div>
+            <div style="margin-top:10px;font-size:12px"><b>Most slain</b><br>Fizzlewick &mdash; 14<br>Cogsworth &mdash; 9</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A. Open book, two pages</h3><p>Index on the left, entry on the right. The classic WAR Tome look. Biggest window.</p></div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="tome" style="display:flex">
+        <div class="page" style="flex:1">
+          <div class="ttl">Nemeses</div>
+          <div class="row"><span><b>Grimtusk</b> <span class="lvl">Orc Warrior</span></span><span>3 / 11</span></div>
+          <div class="row"><span><b>Shadowfang</b> <span class="lvl">Undead Rogue</span></span><span>0 / 7</span></div>
+          <div class="row"><span><b>Bolvarn</b> <span class="lvl">Tauren Druid</span></span><span>8 / 2</span></div>
+          <div class="cap">Kills / Deaths. Click a name for your history together.</div>
+        </div>
+        <div class="tabs">
+          <div class="tab">Races</div>
+          <div class="tab">Classes</div>
+          <div class="tab on">Nemeses</div>
+          <div class="tab">Titles</div>
+          <div class="tab">Ledger</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B. Single page with bookmark tabs</h3><p>Smaller window, ribbon tabs down the edge. Still feels like a book but takes less screen.</p></div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="tome"><div class="page" style="min-height:120px">
+        <div class="ttl">Unlock moment (any layout)</div>
+        <div class="cap">Plays mid-screen when you first kill a race or class, or earn a title:</div>
+        <div class="toast">Tome of Vengeance Unlocked<b>Scourge of Gnomeregan</b>100 Gnomes slain</div>
+      </div></div>
+    </div>
+    <div class="card-body"><h3>Reference: the unlock fanfare</h3><p>Not a layout. It shows the WAR-style pop-up that goes with either A or B. Tell me if this hits the feeling.</p></div>
+  </div>
+</div>
