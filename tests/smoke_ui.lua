@@ -92,7 +92,7 @@ for _, retail in ipairs({ true, false }) do
   check(#book.tabs == 6, "six top section links")
   for _, id in ipairs({ "nemeses", "ledger", "titles", "settings" }) do
     Book.open(id)
-    check(book.section == id, "placeholder section opens: " .. id)
+    check(book.section == id, "section opens: " .. id)
   end
   Book.open("races", "Human")
   check(book.rightPage.prompt:GetText() == "Slay one to fill this page.", "locked entry prompt")
@@ -156,7 +156,10 @@ for _, retail in ipairs({ true, false }) do
   end
   check(db.total.kills == kills and db.total.deaths == deaths, "cross-realm duel excluded")
 
-  db.players.E1.deaths = 3
+  while db.players.E1.deaths < 3 do
+    cleu("SPELL_DAMAGE", "E1", "Fizz-Away", enemy, "ME", "Hero", 0x511)
+    env.fire("PLAYER_DEAD")
+  end
   local soundCount = #sounds
   db.settings.sound = false
   cleu("SWING_DAMAGE", "ME", "Hero", 0x511, "E1", "Fizz-Away", enemy)
@@ -186,10 +189,76 @@ for _, retail in ipairs({ true, false }) do
   check(not Book.isShown(), "compartment toggles")
   env.SlashCmdList.TOMEOFVENGEANCE("settings")
   check(Book.isShown() and book.section == "settings", "settings opens")
+  Book.open("nemeses", "E1")
+  check(#book.leftPage.rows == 1 and book.leftPage.rows[1].key == "E1", "nemesis list uses threshold")
+  check(contains(book.rightPage, "Enemy Guild"), "player detail includes guild")
+  Book.open("ledger")
+  check(book.leftPage.rows[1].event == db.ledger[#db.ledger], "ledger newest first")
+  book.leftPage.rows[1]:Click()
+  check(book.section == "nemeses" and book.key == db.ledger[#db.ledger].guid, "ledger opens any player")
+  Book.open("titles")
+  check(#book.leftPage.rows >= 2, "earned titles listed")
+  book.leftPage.rows[1]:Click()
+  check(db.activeTitle == book.leftPage.rows[1].key and book.activeTitle:GetText() == ns.Titles.name(db.activeTitle), "title click updates header")
+  check(ns.UI.Minimap.button:IsShown(), "minimap created")
+  local minimap = ns.UI.Minimap.button
+  minimap:GetScript("OnEnter")(minimap)
+  check(env.GameTooltip._text == "Tome of Vengeance" and env.GameTooltip._line:find("Slain: ", 1, true), "minimap tooltip totals")
+  minimap:GetScript("OnLeave")(minimap)
+  minimap:GetScript("OnDragStart")(minimap)
+  env.advance(0.1)
+  check(near(db.settings.minimapAngle, 0), "minimap drag saves angle")
+  minimap:GetScript("OnDragStop")(minimap)
+  check(not minimap:GetScript("OnUpdate"), "minimap drag stops")
+  ns.UI.Minimap.button:Click()
+  check(not Book.isShown(), "minimap toggles book")
+  Book.open("settings")
+  book.leftPage.controls.minimap:Click()
+  check(not db.settings.minimap and not ns.UI.Minimap.button:IsShown(), "minimap setting hides button")
+  book.leftPage.controls.alerts:Click()
+  check(not db.settings.alerts, "alerts checkbox saved")
+  book.leftPage.controls.sound:Click()
+  check(not db.settings.sound, "sound checkbox saved")
+  book.leftPage.controls.threshold:SetValue(4)
+  check(db.settings.nemesisThreshold == 4, "threshold slider saved")
+  Book.open("nemeses")
+  check(#book.leftPage.rows == 0 and contains(book.leftPage, "No one has bested you thrice. Yet."), "threshold removes nemesis")
+  Book.open("settings")
+  local oldSound = db.settings.sounds.unlock
+  book.rightPage.sounds.unlock.select:Click()
+  check(db.settings.sounds.unlock ~= oldSound, "sound cycles shortlist")
+  book.rightPage.sounds.unlock.play:Click()
+  check(sounds[#sounds] == db.settings.sounds.unlock, "preview uses selected sound even muted")
+  local warmed = #env.frames
+  for _ = 1, 5 do Book.open("settings") end
+  check(#env.frames == warmed, "settings reuses pooled controls")
+  db.ledger[#db.ledger + 1] = { t = 1001, kind = "kill", guid = "E2", zone = "Duskwood", ctxKind = "world" }
+  Book.open("ledger")
+  book.leftPage.rows[1]:Click()
+  check(book.key == "E2" and contains(book.rightPage, "Avenged"), "non-nemesis player shows revenge marker")
+  db.ledger[#db.ledger + 1] = { t = 1002, kind = "death", guid = "E2", zone = "Duskwood", ctxKind = "world" }
+  Book.open("nemeses", "E2")
+  local avenged = false
+  for _, label in ipairs(book.rightPage.pool.FontString) do
+    if label:IsShown() and label:GetText() == "Avenged" then avenged = true end
+  end
+  check(not avenged, "later death removes avenged marker")
+  Book.open("settings")
+  book.rightPage.erase:Click()
+  check(env.popup == "TOMEOFVENGEANCE_RESET" and ns.App.db == db, "erase uses shared confirmation")
+  if retail then
+    check(env.settingsCategory and env.settingsRegistered, "Retail Settings launcher registered")
+    env.settingsCategory.panel.launch:Click()
+    check(book.section == "settings", "Settings launcher opens page")
+  end
   env.SlashCmdList.TOMEOFVENGEANCE("reset")
   check(ns.App.db == db and db.total.kills == kills, "reset requires confirmation")
   env.StaticPopupDialogs.TOMEOFVENGEANCE_RESET.OnAccept()
   check(ns.App.db.total.kills == 0 and ns.App.db == env.TomeOfVengeanceDB, "confirmed reset")
+  check(ns.UI.Minimap.button:IsShown(), "reset restores minimap default")
+  check(book.leftPage.controls.minimap:GetChecked(), "reset refreshes visible controls")
+  book.leftPage.controls.sound:Click()
+  check(not ns.App.db.settings.sound and db.settings.sound == false, "controls use replacement database after reset")
   env.SlashCmdList.TOMEOFVENGEANCE("debug")
   check(env.messages[#env.messages]:find("CLEU registered: yes", 1, true), "debug registration")
 
