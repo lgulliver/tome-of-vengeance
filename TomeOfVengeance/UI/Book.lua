@@ -44,6 +44,7 @@ local function text(parent, value, y, size, color)
   return label
 end
 Book.text = text
+Book.region = region
 
 local function page(parent, x)
   local paper = CreateFrame("Frame", nil, parent)
@@ -180,6 +181,8 @@ local function display(entry, kind)
   return entry.singular
 end
 
+Book.display = display
+
 function Book.collection(kind, heading)
   local section = kind == "race" and "races" or "classes"
   local field = kind == "race" and "raceFile" or "classFile"
@@ -275,10 +278,3 @@ function Book.collection(kind, heading)
 end
 
 ns.UI.Book = Book
-for i, id in ipairs({ "nemeses", "ledger", "titles", "settings" }) do
-  Book.registerSection(id, {
-    label = id, order = i + 2,
-    buildIndex = function(host) text(host, id:upper(), 0, 20, Theme.BLOOD) end,
-    buildEntry = function(host) text(host, "This page awaits its story.", -42) end,
-  })
-end

@@ -20,5 +20,6 @@ read_globals = {
   "PlaySound", "SOUNDKIT", "CreateFrame", "Ambiguate", "UnitIsPlayer", "UnitCanAttack",
   "CombatLogGetCurrentEventInfo", "StaticPopup_Show", "hooksecurefunc", "StartDuel",
   "UISpecialFrames", "RAID_CLASS_COLORS", "C_CreatureInfo", "LOCALIZED_CLASS_NAMES_MALE",
+  "Settings", "Minimap", "GameTooltip", "GetCursorPosition", "date",
   "UIParent", "GameFontNormal", "CreateFont", "_G",
 }

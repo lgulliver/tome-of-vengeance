@@ -24,4 +24,9 @@ UI/Toast.lua
 UI/Book.lua
 UI/Pages/Races.lua
 UI/Pages/Classes.lua
+UI/Pages/Nemeses.lua
+UI/Pages/Ledger.lua
+UI/Pages/Titles.lua
+UI/Pages/Settings.lua
+UI/Minimap.lua
 TomeOfVengeance.lua
