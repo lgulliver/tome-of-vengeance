@@ -2,7 +2,13 @@ local env = setmetatable({}, { __index = _G })
 env.frames, env.messages, env.sounds = {}, {}, {}
 env.SlashCmdList, env.StaticPopupDialogs = {}, {}
 env.WOW_PROJECT_ID, env.WOW_PROJECT_MAINLINE = 1, 1
-env.Settings = {}
+env.Settings = {
+  RegisterCanvasLayoutCategory = function(panel, name)
+    env.settingsCategory = { panel = panel, name = name }
+    return env.settingsCategory
+  end,
+  RegisterAddOnCategory = function(category) env.settingsRegistered = category end,
+}
 env.UISpecialFrames = {}
 env.RAID_CLASS_COLORS = { MAGE = { r = 0.25, g = 0.78, b = 0.92 } }
 
@@ -45,6 +51,14 @@ UIParent._scale = 1
 UIParent._shown = true
 UIParent._level = 0
 env.UIParent = UIParent
+
+env.Minimap = newObject("Frame", UIParent)
+env.Minimap:SetSize(140, 140)
+env.Minimap:Show()
+env.GameTooltip = newObject("Frame", UIParent)
+env.GameTooltip.SetText = function(self, text) self._text = text end
+env.GameTooltip.AddLine = function(self, text) self._line = text end
+env.GetCursorPosition = function() return 200, 100 end
 
 -- Font stubs ----------------------------------------------------------------
 
@@ -137,7 +151,19 @@ methods.SetScrollChild = function(self, child) self._scrollChild = child end
 methods.SetVerticalScroll = function(self, value) self._scroll = value end
 methods.GetVerticalScroll = function(self) return self._scroll or 0 end
 methods.GetVerticalScrollRange = function(self) return math.max(0, self._scrollChild:GetHeight() - 420) end
-methods.Click = function(self) runScript(self, "OnClick") end
+methods.Click = function(self)
+  if self._kind == "CheckButton" then self._checked = not self._checked end
+  runScript(self, "OnClick")
+end
+methods.SetChecked = function(self, value) self._checked = value end
+methods.GetChecked = function(self) return self._checked end
+methods.SetMinMaxValues = function(self, low, high) self._min, self._max = low, high end
+methods.SetValue = function(self, value)
+  self._value = value
+  runScript(self, "OnValueChanged", value)
+end
+methods.GetValue = function(self) return self._value end
+methods.GetCenter = function() return 100, 100 end
 methods.GetNumPoints = function(self) return #self._points end
 methods.SetSize = function(self, w, h) self._w, self._h = w, h end
 methods.SetWidth = function(self, w) self._w = w end
@@ -246,6 +272,7 @@ env.UnitCanAttack = function() return true end
 env.IsInInstance = function() return false, "none" end
 env.GetRealZoneText = function() return "Duskwood" end
 env.GetSubZoneText = function() return "Darkshire" end
+env.date = os.date
 env.time = function() return 1000 end
 env.GetTime = function() return clock end
 env.issecretvalue = function(value) return env.secret ~= nil and value == env.secret end
