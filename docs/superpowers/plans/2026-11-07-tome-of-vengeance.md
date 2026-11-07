@@ -423,6 +423,7 @@ Not code. Checklist the implementer prepares in `docs/verification.md` and hands
 - [ ] Arena (Retail): note whether events arrive or are secret. Best-effort; doesn't block.
 - [ ] Duel: nothing recorded.
 - [ ] Nemesis alert fires on nameplate/target, once per 5 min.
+- [ ] Retail: confirm Haranir race token (`Harronir`?) and raceID 86, and Earthen raceID, via `/dump UnitRace("target")` and `C_CreatureInfo.GetRaceInfo`; fix `Data/Races.lua`.
 - [ ] `/dump SOUNDKIT.<key>` for every `Data/Sounds` key on each client; remove missing ones.
 - [ ] Book visually matches the mockup's feel; screenshot for README and CurseForge.
 - [ ] Before any push: Liam creates `lgulliver/tome-of-vengeance` on GitHub, CurseForge project, Wago project + webhook, sets `CF_API_TOKEN`/`CF_PROJECT_ID`. No pushing or publishing without his go-ahead.
