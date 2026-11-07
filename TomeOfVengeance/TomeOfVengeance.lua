@@ -116,8 +116,11 @@ frame:SetScript("OnEvent", function(_, event, ...) pcall(handle, event, ...) end
 for _, event in ipairs({ "ADDON_LOADED", "PLAYER_LOGIN", "COMBAT_LOG_EVENT_UNFILTERED", "PLAYER_DEAD",
   "DUEL_REQUESTED", "DUEL_FINISHED", "NAME_PLATE_UNIT_ADDED",
   "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT" }) do
-  local ok = pcall(frame.RegisterEvent, frame, event)
-  if event == "COMBAT_LOG_EVENT_UNFILTERED" then cleuRegistered = ok end
+  if event ~= "COMBAT_LOG_EVENT_UNFILTERED" then
+    pcall(frame.RegisterEvent, frame, event)
+  elseif C.combatLogAllowed() then
+    cleuRegistered = pcall(frame.RegisterEvent, frame, event)
+  end
 end
 
 -- No event names the opponent when we issue the challenge ourselves.

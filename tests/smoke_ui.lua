@@ -292,4 +292,25 @@ for _, retail in ipairs({ true, false }) do
 
   print("PASS smoke " .. (retail and "Retail" or "Classic"))
 end
-print("2 smoke profiles passed, 0 failed")
+-- Midnight-engine clients must never try to register the combat log.
+do
+  local env = dofile("tests/wow_stub.lua")
+  env.C_Secrets = { HasSecretRestrictions = function() return true end }
+  local ns = {}
+  local toc = assert(io.open("TomeOfVengeance/TomeOfVengeance.toc"))
+  for line in toc:lines() do
+    line = line:gsub("\r", ""):match("^%s*(.-)%s*$")
+    if line ~= "" and line:sub(1, 1) ~= "#" then
+      setfenv(assert(loadfile("TomeOfVengeance/" .. line:gsub("\\", "/"))), env)("TomeOfVengeance", ns)
+    end
+  end
+  toc:close()
+  for _, frame in ipairs(env.frames) do
+    check(not frame.events.COMBAT_LOG_EVENT_UNFILTERED, "restricted client skips combat log")
+  end
+  env.fire("ADDON_LOADED", "TomeOfVengeance")
+  env.SlashCmdList.TOMEOFVENGEANCE("debug")
+  check(env.messages[#env.messages]:find("CLEU registered: no", 1, true), "debug reports restriction")
+  print("PASS smoke Restricted")
+end
+print("3 smoke profiles passed, 0 failed")

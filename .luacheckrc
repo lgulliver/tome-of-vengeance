@@ -18,7 +18,7 @@ read_globals = {
   "GetPlayerInfoByGUID", "UnitIsVisible", "UnitLevel", "GetGuildInfo", "IsInInstance",
   "GetRealZoneText", "GetSubZoneText", "time", "GetTime", "issecretvalue",
   "PlaySound", "SOUNDKIT", "CreateFrame", "Ambiguate", "UnitIsPlayer", "UnitCanAttack",
-  "CombatLogGetCurrentEventInfo", "StaticPopup_Show", "hooksecurefunc", "StartDuel",
+  "CombatLogGetCurrentEventInfo", "StaticPopup_Show", "hooksecurefunc", "StartDuel", "C_Secrets",
   "UISpecialFrames", "RAID_CLASS_COLORS", "C_CreatureInfo", "LOCALIZED_CLASS_NAMES_MALE",
   "Settings", "Minimap", "GameTooltip", "GetCursorPosition", "date",
   "UIParent", "GameFontNormal", "CreateFont", "_G",

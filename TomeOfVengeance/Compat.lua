@@ -18,6 +18,16 @@ function Compat.playerGUID()
   return UnitGUID and UnitGUID("player")
 end
 
+-- Midnight-engine clients (Retail 12.x, Forever) forbid addons from registering
+-- the combat log; trying raises the "blocked from an action" popup even under pcall.
+function Compat.combatLogAllowed()
+  if C_Secrets and C_Secrets.HasSecretRestrictions then
+    local ok, restricted = pcall(C_Secrets.HasSecretRestrictions)
+    if not ok or restricted then return false end
+  end
+  return CombatLogGetCurrentEventInfo ~= nil
+end
+
 function Compat.isSecret(value)
   return issecretvalue and issecretvalue(value) or false
 end
