@@ -13,3 +13,7 @@ Copy `TomeOfVengeance/` into your client's `Interface/AddOns/` directory (for ex
 Planned command: `/tov`. The `/tome` alias is dropped because [DungeonTome](https://www.curseforge.com/wow/addons/dungeontome-forever) and [Chronicle Tome](https://www.curseforge.com/wow/addons/chronicle-tome) already document it.
 
 CurseForge and Wago slash-clash searches on 2026-11-07 found no documented `/tov` conflict. Search indexing is incomplete; this is not a guarantee of availability.
+
+## Recording rules
+
+Race and class counts include only events recorded after that identity becomes known. If player information is not cached yet, the player record and overall totals still count the event; later identity backfill does not retroactively credit race or class counts or unlock entries.
