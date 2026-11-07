@@ -19,6 +19,7 @@ Core/Titles.lua
 Core/Record.lua
 # Compat.lua, UI files, and TomeOfVengeance.lua follow Core as implemented.
 Compat.lua
+Diag.lua
 UI/Theme.lua
 UI/Toast.lua
 UI/Book.lua
