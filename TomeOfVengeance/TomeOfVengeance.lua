@@ -49,6 +49,8 @@ local function handle(event, ...)
     App.db = TomeOfVengeanceDB
     combat = ns.CombatLog.new({ playerGUID = C.playerGUID(), isSecret = C.isSecret, window = 12 })
     if ns.UI and ns.UI.Book and ns.UI.Book.create then ns.UI.Book.create() end
+    if ns.UI and ns.UI.Minimap then ns.UI.Minimap.create() end
+    if ns.UI and ns.UI.Settings then ns.UI.Settings.create() end
     return
   end
   if not App.db then return end
@@ -135,6 +137,8 @@ if StaticPopupDialogs then
       local faction = C.context().faction
       if faction then App.db.factionsSeen[faction] = true end
       combat = ns.CombatLog.new({ playerGUID = C.playerGUID(), isSecret = C.isSecret, window = 12 })
+      if ns.UI and ns.UI.Minimap then ns.UI.Minimap.refresh() end
+      if ns.UI and ns.UI.Book and ns.UI.Book.isShown() then ns.UI.Book.open("settings") end
     end,
   }
 end
