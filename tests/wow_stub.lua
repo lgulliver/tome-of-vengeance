@@ -3,6 +3,8 @@ env.frames, env.messages, env.sounds = {}, {}, {}
 env.SlashCmdList, env.StaticPopupDialogs = {}, {}
 env.WOW_PROJECT_ID, env.WOW_PROJECT_MAINLINE = 1, 1
 env.Settings = {}
+env.UISpecialFrames = {}
+env.RAID_CLASS_COLORS = { MAGE = { r = 0.25, g = 0.78, b = 0.92 } }
 
 local clock = 100
 local noop = function() end
@@ -129,6 +131,13 @@ methods.SetAllPoints = function(self, rel)
     { "BOTTOMRIGHT", rel or self._parent, "BOTTOMRIGHT", 0, 0 },
   }
 end
+methods.GetName = function(self) return self._name end
+methods.GetPoint = function(self, i) return unpack(self._points[i or 1]) end
+methods.SetScrollChild = function(self, child) self._scrollChild = child end
+methods.SetVerticalScroll = function(self, value) self._scroll = value end
+methods.GetVerticalScroll = function(self) return self._scroll or 0 end
+methods.GetVerticalScrollRange = function(self) return math.max(0, self._scrollChild:GetHeight() - 420) end
+methods.Click = function(self) runScript(self, "OnClick") end
 methods.GetNumPoints = function(self) return #self._points end
 methods.SetSize = function(self, w, h) self._w, self._h = w, h end
 methods.SetWidth = function(self, w) self._w = w end
@@ -188,6 +197,7 @@ end
 env.CreateFrame = function(kind, name, parent, template)
   local f = newObject(kind or "Frame", parent or UIParent)
   f._template = template
+  f._name = name
   -- Preserve the field names used by the older minimal stub.
   f.events = f._events
   f.scripts = f._scripts
