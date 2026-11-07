@@ -1,0 +1,3 @@
+local _, ns = ...
+
+ns.UI.Book.registerSection("races", ns.UI.Book.collection("race", "Bestiary of Foes"))
