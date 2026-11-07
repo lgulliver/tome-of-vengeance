@@ -6,5 +6,8 @@
 ## AddonCompartmentFunc: TomeOfVengeance_OnCompartmentClick
 
 # Data files precede Core files as they are implemented.
+Data/Races.lua
+Data/Classes.lua
 Core/Store.lua
+Core/Roster.lua
 # Compat.lua, UI files, and TomeOfVengeance.lua follow Core as implemented.
