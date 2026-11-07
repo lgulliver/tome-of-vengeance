@@ -7,4 +7,5 @@
 
 # Data files precede Core files as they are implemented.
 Core/Store.lua
+Core/Nemesis.lua
 # Compat.lua, UI files, and TomeOfVengeance.lua follow Core as implemented.
