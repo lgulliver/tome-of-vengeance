@@ -11,4 +11,4 @@ globals = {
   "TomeOfVengeance_OnCompartmentClick",
 }
 
-read_globals = {}
+read_globals = { "bit" }
