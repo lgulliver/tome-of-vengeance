@@ -5,7 +5,7 @@ T.test("migrate_fills_defaults", function()
   T.eq(db.version, 1)
   T.eq(db.settings, {
     alerts = true, sound = true, nemesisThreshold = 3, minimap = true,
-    sounds = { unlock = "RAID_WARNING", title = "RAID_WARNING", nemesis = "RAID_WARNING" },
+    sounds = { unlock = "LEVEL_UP", title = "PVP_THROUGH_QUEUE", nemesis = "RAID_WARNING" },
   })
   T.eq(db.total, { kills = 0, deaths = 0 })
   for _, key in ipairs({ "players", "races", "classes", "titles", "ledger", "factionsSeen" }) do
@@ -22,7 +22,7 @@ T.test("migrate_keeps_existing", function()
   T.eq(db.settings.alerts, false)
   T.eq(db.settings.sound, true)
   T.eq(db.settings.sounds.title, "CUSTOM")
-  T.eq(db.settings.sounds.unlock, "RAID_WARNING")
+  T.eq(db.settings.sounds.unlock, "LEVEL_UP")
   T.eq(db.total, { kills = 9, deaths = 1 })
   T.eq(db.players.G1.kills, 4)
   T.eq(db.activeTitle, "earned")
@@ -35,8 +35,8 @@ T.test("migrate_defaults_are_independent", function()
   local a, b = ns.Store.migrate(nil), ns.Store.migrate({})
   a.settings.sounds.title = "CUSTOM"
   a.ledger[1] = { t = 1 }
-  T.eq(b.settings.sounds.title, "RAID_WARNING")
-  T.eq(ns.Store.DEFAULTS.settings.sounds.title, "RAID_WARNING")
+  T.eq(b.settings.sounds.title, "PVP_THROUGH_QUEUE")
+  T.eq(ns.Store.DEFAULTS.settings.sounds.title, "PVP_THROUGH_QUEUE")
   T.eq(b.ledger, {})
 end)
 

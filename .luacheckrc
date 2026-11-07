@@ -19,4 +19,5 @@ read_globals = {
   "GetRealZoneText", "GetSubZoneText", "time", "GetTime", "issecretvalue",
   "PlaySound", "SOUNDKIT", "CreateFrame", "Ambiguate", "UnitIsPlayer", "UnitCanAttack",
   "CombatLogGetCurrentEventInfo", "StaticPopup_Show", "hooksecurefunc", "StartDuel",
+  "UIParent", "GameFontNormal", "CreateFont", "_G",
 }
