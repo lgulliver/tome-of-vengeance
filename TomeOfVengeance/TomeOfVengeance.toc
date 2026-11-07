@@ -8,12 +8,14 @@
 # Data files precede Core files as they are implemented.
 Data/Races.lua
 Data/Classes.lua
+Data/Titles.lua
 Core/Store.lua
 Core/Roster.lua
 Core/Attribution.lua
 Core/CombatLog.lua
-Core/Record.lua
 Core/Nemesis.lua
+Core/Titles.lua
+Core/Record.lua
 # Compat.lua, UI files, and TomeOfVengeance.lua follow Core as implemented.
 Compat.lua
 TomeOfVengeance.lua
