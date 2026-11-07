@@ -21,4 +21,7 @@ Core/Record.lua
 Compat.lua
 UI/Theme.lua
 UI/Toast.lua
+UI/Book.lua
+UI/Pages/Races.lua
+UI/Pages/Classes.lua
 TomeOfVengeance.lua
