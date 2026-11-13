@@ -19,8 +19,8 @@ read_globals = {
   "GetRealZoneText", "GetSubZoneText", "time", "GetTime", "issecretvalue",
   "PlaySound", "SOUNDKIT", "CreateFrame", "Ambiguate", "UnitIsPlayer", "UnitCanAttack",
   "CombatLogGetCurrentEventInfo", "StaticPopup_Show", "hooksecurefunc", "StartDuel", "C_Secrets", "C_DeathRecap", "GetDeathRecapLink", "C_Timer",
-  "C_EventUtils", "GetPVPLifetimeStats", "GetPVPSessionStats", "C_PvP", "UnitRace",
   "UISpecialFrames", "RAID_CLASS_COLORS", "C_CreatureInfo", "LOCALIZED_CLASS_NAMES_MALE",
   "Settings", "Minimap", "GameTooltip", "GetCursorPosition", "date",
   "UIParent", "GameFontNormal", "CreateFont", "_G",
+  "QuestTitleFont", "BackdropTemplateMixin", "CLASS_ICON_TCOORDS",
 }
