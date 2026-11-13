@@ -260,7 +260,7 @@ for _, retail in ipairs({ true, false }) do
   book.leftPage.controls.sound:Click()
   check(not ns.App.db.settings.sound and db.settings.sound == false, "controls use replacement database after reset")
   env.SlashCmdList.TOMEOFVENGEANCE("debug")
-  check(env.messages[#env.messages]:find("CLEU registered: yes", 1, true), "debug registration")
+  check(env.messages[#env.messages]:find("source: combat log", 1, true), "debug registration")
 
   local identity = ns.Compat.who("E1", "Fizz-Away")
   check(identity.raceID == 7 and identity.faction == "Alliance" and identity.className == "Mage", "identity metadata")
@@ -309,8 +309,36 @@ do
     check(not frame.events.COMBAT_LOG_EVENT_UNFILTERED, "restricted client skips combat log")
   end
   env.fire("ADDON_LOADED", "TomeOfVengeance")
+  env.fire("PLAYER_LOGIN")
+  local db = env.TomeOfVengeanceDB
+
+  -- Kills: an engaged hostile player who dies.
+  env.fire("UNIT_DIED", "E9")
+  check(db.total.kills == 0, "unengaged death ignored")
+  env.fire("PLAYER_TARGET_CHANGED")
+  env.fire("UNIT_DIED", "E1")
+  check(db.total.kills == 1 and db.players.E1.kills == 1, "engaged death counts as kill")
+  local unitGUID = env.UnitGUID
+  env.UnitGUID = function(unit) return unit == "player" and "ME" or nil end
+  env.fire("UNIT_DIED", "E1")
+  check(db.total.kills == 1, "one kill per engagement")
+  env.UnitGUID = unitGUID
+
+  -- Deaths: killer read from the death recap.
+  env.GetDeathRecapLink = function() return "|cff71d5ff|Hdeath:18|h[You died.]|h" end
+  local recapId
+  env.C_DeathRecap = { GetRecapEvents = function(id)
+    recapId = id
+    return { { sourceGUID = "E1", sourceName = "Fizz", sourceFlags = 0x10548, timestamp = 5 } }
+  end }
+  env.fire("PLAYER_DEAD")
+  check(recapId == 18 and db.total.deaths == 1 and db.players.E1.deaths == 1, "recap death recorded")
+  env.C_DeathRecap.GetRecapEvents = function() return {} end
+  env.fire("PLAYER_DEAD")
+  check(db.total.deaths == 1, "empty recap records nothing")
+
   env.SlashCmdList.TOMEOFVENGEANCE("debug")
-  check(env.messages[#env.messages]:find("CLEU registered: no", 1, true), "debug reports restriction")
+  check(env.messages[#env.messages]:find("source: death recap", 1, true), "debug reports restriction")
   print("PASS smoke Restricted")
 end
 print("3 smoke profiles passed, 0 failed")

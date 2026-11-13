@@ -47,6 +47,8 @@ Only your killing blow counts, including blows from your own pet or guardian. Gr
 
 Your killer is the last hostile player to damage you within 12 seconds before death. Without a qualifying attacker, no PvP death is recorded.
 
+Midnight-engine clients (Retail 12.x and Forever) block addons from the combat log, so there kills and deaths come from other sources. A kill is any hostile player you targeted, moused over or saw on a nameplate in the last 15 seconds who then dies, so assists count too. Your killer is the last hostile player in Blizzard's death recap.
+
 Enemy records are keyed by GUID. Race and class totals receive credit only once that identity is known; later discovery does not retroactively credit earlier kills or deaths. Account history is shared across characters, with per-character breakdowns. The ledger keeps the latest 200 events.
 
 Classic and Forever show races from opposing factions the account has played, plus playable neutral races. Retail shows all playable races.

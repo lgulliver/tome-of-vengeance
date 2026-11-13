@@ -172,3 +172,67 @@ T.test("attribution_drop_reset_and_expiry", function()
   a:reset()
   T.eq(a:killer(16), nil)
 end)
+
+-- Midnight-engine clients: no combat log, so kills come from UNIT_DIED and deaths from the death recap.
+local function recapHit(guid, name, flags, timestamp)
+  return { event = "SPELL_DAMAGE", sourceGUID = guid, sourceName = name, sourceFlags = flags, timestamp = timestamp }
+end
+
+T.test("engaged_enemy_death_is_kill", function()
+  local s = state()
+  ns.CombatLog.engage(s, "E1", "Enemy", 1)
+  T.eq(ns.CombatLog.onUnitDied(s, "E1", 10), { kind = "kill", who = { guid = "E1", name = "Enemy" } })
+  T.eq(ns.CombatLog.onUnitDied(s, "E1", 11), nil)
+end)
+
+T.test("unengaged_or_stale_death_ignored", function()
+  local s = state()
+  T.eq(ns.CombatLog.onUnitDied(s, "E1", 1), nil)
+  ns.CombatLog.engage(s, "E1", "Enemy", 1)
+  T.eq(ns.CombatLog.onUnitDied(s, "E1", 17), nil)
+end)
+
+T.test("engagement_refresh_and_custom_window", function()
+  local s = state({ playerGUID = "ME", engageWindow = 5 })
+  ns.CombatLog.engage(s, "E1", "Enemy", 1)
+  ns.CombatLog.engage(s, "E1", "Enemy", 4)
+  T.eq(ns.CombatLog.onUnitDied(s, "E1", 9).who.guid, "E1")
+end)
+
+T.test("unit_died_self_duel_and_secret_ignored", function()
+  local s = state({ playerGUID = "ME", isSecret = function(v) return v == "SECRET" end })
+  ns.CombatLog.engage(s, "ME", "Me", 1)
+  T.eq(ns.CombatLog.onUnitDied(s, "ME", 2), nil)
+  ns.CombatLog.engage(s, "SECRET", "Enemy", 1)
+  T.eq(ns.CombatLog.onUnitDied(s, "SECRET", 2), nil)
+  ns.CombatLog.setDuel(s, "Duelist")
+  ns.CombatLog.engage(s, "E1", "Duelist", 1)
+  T.eq(ns.CombatLog.onUnitDied(s, "E1", 2), nil)
+  T.eq(ns.CombatLog.onUnitDied(s, nil, 2), nil)
+end)
+
+T.test("recap_last_hostile_player_is_killer", function()
+  local s = state()
+  ns.CombatLog.handle(s, mk("SWING_DAMAGE", "OLD", ENEMY, "ME", 0x511), 1)
+  local events = {
+    recapHit("E2", "Second", 0x10548, 105),
+    recapHit("NPC", "Wolf", 0xa48, 106),
+    recapHit("E1", "First", 0x10548, 100),
+  }
+  T.eq(ns.CombatLog.fromRecap(s, events), { kind = "death", who = { guid = "E2", name = "Second" } })
+  T.eq(ns.CombatLog.onPlayerDeath(s, 2), nil)
+end)
+
+T.test("recap_skips_duel_secret_and_malformed", function()
+  local s = state({ playerGUID = "ME", isSecret = function(v) return v == "SECRET" end })
+  ns.CombatLog.setDuel(s, "Duelist")
+  T.eq(ns.CombatLog.fromRecap(s, {
+    recapHit("E1", "Duelist", ENEMY, 5),
+    recapHit("SECRET", "Hidden", ENEMY, 6),
+    recapHit("E3", "Nameless", "bad", 7),
+    { sourceGUID = "E4", sourceName = "NoTime", sourceFlags = ENEMY },
+    "junk",
+  }), nil)
+  T.eq(ns.CombatLog.fromRecap(s, nil), nil)
+  T.eq(ns.CombatLog.fromRecap(s, "SECRET"), nil)
+end)

@@ -39,7 +39,28 @@ local function unitSight(unit)
   local who = C.who(guid, UnitName and UnitName(unit))
   C.enrich(who, unit)
   ns.Store.player(App.db, who, C.context())
+  ns.CombatLog.engage(combat, guid, who.name, clock())
   sight(guid)
+end
+
+local function recapEvents()
+  if not C_DeathRecap or not C_DeathRecap.GetRecapEvents then return end
+  local link = GetDeathRecapLink and GetDeathRecapLink()
+  local id = type(link) == "string" and not C.isSecret(link) and tonumber(link:match("death:(%d+)"))
+  return C_DeathRecap.GetRecapEvents(id)
+end
+
+local function recordDeath(result, ctx)
+  local entry = names[result.who.guid]
+  App.announce(ns.Record.death(App.db, C.who(result.who.guid, entry and entry.name or result.who.name), ctx))
+end
+
+-- The recap can fill in a moment after death.
+local function recapDeath(retry)
+  local ctx = C.context()
+  local result = ns.CombatLog.fromRecap(combat, recapEvents())
+  if result then return recordDeath(result, ctx) end
+  if retry and C_Timer and C_Timer.After then C_Timer.After(1, function() pcall(recapDeath, false) end) end
 end
 
 local function handle(event, ...)
@@ -92,13 +113,21 @@ local function handle(event, ...)
       if type(flags) == "number" and bit.band(flags, hostilePlayer) == hostilePlayer and guid then sight(guid, now) end
     end
   elseif event == "PLAYER_DEAD" then
-    local ctx = C.context()
-    local result = ns.CombatLog.onPlayerDeath(combat, ctx.clock)
-    if result then
-      local entry = names[result.who.guid]
-      App.announce(ns.Record.death(App.db, C.who(result.who.guid, entry and entry.name or result.who.name), ctx))
+    if cleuRegistered then
+      local ctx = C.context()
+      local result = ns.CombatLog.onPlayerDeath(combat, ctx.clock)
+      if result then recordDeath(result, ctx) end
+    else
+      recapDeath(true)
     end
     names = {}
+  elseif event == "UNIT_DIED" then
+    local guid = ...
+    if C.isSecret(guid) then return end
+    -- A long fight against our target outlasts its first sighting.
+    if UnitGUID and guid == UnitGUID("target") then unitSight("target") end
+    local result = ns.CombatLog.onUnitDied(combat, guid, clock())
+    if result then App.announce(ns.Record.kill(App.db, C.who(guid, result.who.name), C.context())) end
   elseif event == "DUEL_REQUESTED" then
     ns.CombatLog.setDuel(combat, short((...)))
   elseif event == "DUEL_FINISHED" then
@@ -122,6 +151,7 @@ for _, event in ipairs({ "ADDON_LOADED", "PLAYER_LOGIN", "COMBAT_LOG_EVENT_UNFIL
     cleuRegistered = pcall(frame.RegisterEvent, frame, event)
   end
 end
+if not cleuRegistered then pcall(frame.RegisterEvent, frame, "UNIT_DIED") end
 
 -- No event names the opponent when we issue the challenge ourselves.
 if hooksecurefunc and StartDuel then
@@ -158,7 +188,7 @@ SlashCmdList.TOMEOFVENGEANCE = function(message)
       local count = 0
       for _ in pairs(App.db and App.db.players or {}) do count = count + 1 end
       print("Tome of Vengeance: " .. (C.isRetail() and "Retail" or "Classic/Forever")
-        .. ", expansion: " .. C.expansion() .. ", CLEU registered: " .. (cleuRegistered and "yes" or "no")
+        .. ", expansion: " .. C.expansion() .. ", source: " .. (cleuRegistered and "combat log" or "death recap + UNIT_DIED")
         .. ", records: " .. count .. ", kills: " .. (App.db and App.db.total.kills or 0)
         .. ", deaths: " .. (App.db and App.db.total.deaths or 0))
     elseif command == "" then App.toggle() end
