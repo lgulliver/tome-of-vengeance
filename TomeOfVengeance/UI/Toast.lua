@@ -24,20 +24,21 @@ local function build()
   panel:SetAllPoints(f)
   f.panel = panel
 
-  header = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  -- Text goes on the panel: a child frame draws over its parent's regions, hiding them.
+  header = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   header:SetPoint("TOP", f, "TOP", 0, -14)
   header:SetWidth(W - 24)
   header:SetJustifyH("CENTER")
   header:SetTextColor(Theme.PARCHMENT_DARK[1], Theme.PARCHMENT_DARK[2], Theme.PARCHMENT_DARK[3], 1)
 
-  title = f:CreateFontString(nil, "OVERLAY")
+  title = panel:CreateFontString(nil, "OVERLAY")
   title:SetFontObject(Theme.font(18, true))
   title:SetPoint("TOP", header, "BOTTOM", 0, -4)
   title:SetWidth(W - 24)
   title:SetJustifyH("CENTER")
   title:SetTextColor(Theme.GOLD_TEXT[1], Theme.GOLD_TEXT[2], Theme.GOLD_TEXT[3], 1)
 
-  reason = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  reason = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   reason:SetPoint("TOP", title, "BOTTOM", 0, -4)
   reason:SetWidth(W - 24)
   reason:SetJustifyH("CENTER")
