@@ -10,8 +10,6 @@ Remember every enemy player you've slain and every foe who slew you, in an open-
 - Nemesis alerts and a recent encounters ledger.
 - Parchment pages, a movable book, minimap launcher and settings inside the Tome.
 
-Development is in progress. These describe the v1 feature set; in-game verification is still required before release.
-
 ## Screenshots
 
 Screenshots will be added after in-game verification on supported clients.
@@ -37,7 +35,7 @@ If your launcher uses a different installation location, open that client's inst
 | `/tov` | Toggle the Tome |
 | `/tov settings` | Open settings |
 | `/tov reset` | Ask for confirmation before erasing the Tome |
-| `/tov debug` | Print client flavour, expansion, combat-log registration and record counts |
+| `/tov debug` | Print client flavour, expansion, kill/death data source and record counts |
 
 The `/tome` alias is dropped because [DungeonTome](https://www.curseforge.com/wow/addons/dungeontome-forever) and [Chronicle Tome](https://www.curseforge.com/wow/addons/chronicle-tome) already document it. CurseForge and Wago slash-clash searches on 2026-11-07 found no documented `/tov` conflict; search indexing is incomplete.
 
