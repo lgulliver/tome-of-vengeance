@@ -88,7 +88,14 @@ for _, retail in ipairs({ true, false }) do
   check(book.rightPage.stats:GetText():find("Slain: 1", 1, true), "class entry shows kill")
   local mage
   for _, row in ipairs(book.leftPage.rows) do if row.key == "MAGE" then mage = row end end
-  check(near(select(1, mage.label:GetTextColor()), env.RAID_CLASS_COLORS.MAGE.r), "class colour")
+  local c = env.RAID_CLASS_COLORS.MAGE
+  check(near(select(1, mage.label:GetTextColor()), ns.UI.Theme.onParchment({ c.r, c.g, c.b })[1]), "class colour darkened for parchment")
+  check(mage.icon and mage.icon:IsShown(), "unlocked class shows icon")
+  for _, row in ipairs(book.leftPage.rows) do
+    if row.key ~= "MAGE" then check(not row.icon, "locked class hides icon") end
+  end
+  local tab1, tab2 = book.tabs[1], book.tabs[2]
+  check(tab2._points[1][4] - tab1._points[1][4] == tab1:GetWidth(), "tabs sized to their labels")
   check(#book.tabs == 6, "six top section links")
   for _, id in ipairs({ "nemeses", "ledger", "titles", "settings" }) do
     Book.open(id)

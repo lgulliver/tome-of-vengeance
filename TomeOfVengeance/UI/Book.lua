@@ -35,7 +35,8 @@ end
 
 local function text(parent, value, y, size, color)
   local label = region(parent, "FontString")
-  label:SetFontObject(Theme.font(size or 14, size == 20))
+  -- Outline only helps gold on the dark cover; on parchment it muddies the ink.
+  label:SetFontObject(Theme.font(size or 15, size == 20 and color == Theme.GOLD_TEXT, (size or 15) >= 16))
   label:SetPoint("TOPLEFT", parent, "TOPLEFT", 12, y)
   label:SetWidth(parent:GetWidth() - 24)
   label:SetJustifyH("LEFT")
@@ -44,12 +45,22 @@ local function text(parent, value, y, size, color)
   return label
 end
 Book.text = text
+
+-- Faint ink wash on hover; the HIGHLIGHT layer shows only while the mouse is over the button.
+function Book.highlight(row)
+  if row.wash then return end
+  row.wash = row:CreateTexture(nil, "HIGHLIGHT")
+  row.wash:SetAllPoints()
+  row.wash:SetColorTexture(Theme.INK[1], Theme.INK[2], Theme.INK[3], 0.08)
+end
 Book.region = region
 
 local function page(parent, x)
   local paper = CreateFrame("Frame", nil, parent)
   paper:SetSize(410, 452)
   paper:SetPoint("TOPLEFT", parent, "TOPLEFT", x, -66)
+  -- The cover is a sibling at the same level; without this its leather can draw over the page.
+  paper:SetFrameLevel(parent:GetFrameLevel() + 2)
   -- Solid fill first: the stationery texture is missing on some clients, which left ink on bare leather.
   local fill = paper:CreateTexture(nil, "BACKGROUND", nil, -1)
   fill:SetAllPoints()
@@ -57,7 +68,8 @@ local function page(parent, x)
   local bg = paper:CreateTexture(nil, "BACKGROUND")
   bg:SetAllPoints()
   bg:SetTexture(Theme.media.parchment)
-  bg:SetVertexColor(unpack(Theme.PARCHMENT_LIGHT))
+  -- Untinted and part-transparent: the grain shows, but the light fill carries the contrast.
+  bg:SetVertexColor(1, 1, 1, 0.55)
   local scroll = CreateFrame("ScrollFrame", nil, paper)
   scroll:SetPoint("TOPLEFT", paper, "TOPLEFT", 10, -12)
   scroll:SetPoint("BOTTOMRIGHT", paper, "BOTTOMRIGHT", -10, 12)
@@ -89,15 +101,17 @@ local function tabs()
   local x = 32
   for _, entry in ipairs(ordered) do
     local tab = CreateFrame("Button", nil, frame)
-    tab:SetSize(62, 25)
     tab:SetPoint("TOPLEFT", frame, "TOPLEFT", x, -38)
-    tab.label = text(tab, entry.section.label:upper(), 0, 10, Theme.GOLD_TEXT)
+    tab.label = text(tab, entry.section.label:upper(), 0, 11, Theme.GOLD_TEXT)
     tab.label:SetPoint("TOPLEFT", tab, "TOPLEFT", 0, 0)
-    tab.label:SetWidth(62)
+    tab.label:SetWidth(0)
+    local width = tab.label:GetStringWidth() + 20
+    tab.label:SetWidth(width)
+    tab:SetSize(width, 25)
     tab:SetScript("OnClick", function() Book.open(entry.id) end)
     tab:Show()
     frame.tabs[#frame.tabs + 1] = tab
-    x = x + 63
+    x = x + width
   end
 end
 
@@ -130,15 +144,23 @@ function Book.create()
   leather:SetTexture(Theme.media.leather)
   leather:SetVertexColor(0.28, 0.17, 0.10)
   -- Header text lives on the cover: a child frame draws over its parent's regions.
-  text(cover, "TOME OF VENGEANCE", -12, 20, Theme.GOLD_TEXT):SetWidth(856)
+  text(cover, "Tome of Vengeance", -12, 20, Theme.GOLD_TEXT):SetWidth(856)
   frame.activeTitle = text(cover, "", -17, 13, Theme.GOLD_TEXT)
   frame.activeTitle:SetPoint("TOPLEFT", cover, "TOPLEFT", 470, -17)
   frame.activeTitle:SetWidth(340)
+  frame.leftPaper, frame.rightPaper = page(frame, 24), page(frame, 446)
+  -- Blizzard's gold dialog border in place of the panel's flat rim.
+  cover.border:Hide()
+  local rim = CreateFrame("Frame", nil, frame, BackdropTemplateMixin and "BackdropTemplate" or nil)
+  rim:SetPoint("TOPLEFT", frame, "TOPLEFT", -6, 6)
+  rim:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 6, -6)
+  rim:SetFrameLevel(frame:GetFrameLevel() + 3)
+  rim:SetBackdrop({ edgeFile = Theme.media.goldBorder, edgeSize = 32 })
   local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
   close:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -4, -4)
+  close:SetFrameLevel(rim:GetFrameLevel() + 1)
   close:SetScript("OnClick", function() frame:Hide() end)
-  frame.leftPaper, frame.rightPaper = page(frame, 24), page(frame, 446)
-  local gutter = frame:CreateTexture(nil, "ARTWORK")
+  local gutter = cover:CreateTexture(nil, "ARTWORK", nil, 1)
   gutter:SetColorTexture(0.23, 0.14, 0.07, 1)
   gutter:SetSize(12, 452)
   gutter:SetPoint("TOPLEFT", frame, "TOPLEFT", 434, -66)
@@ -194,7 +216,7 @@ function Book.collection(kind, heading)
   return {
     label = section, order = kind == "race" and 1 or 2,
     buildIndex = function(host, db)
-      text(host, heading:upper(), 0, 20, Theme.BLOOD)
+      text(host, heading, 0, 20, Theme.BLOOD)
       local entries = kind == "race" and ns.Roster.races(ns.Compat.expansion(), ns.Compat.isRetail(), db.factionsSeen)
         or ns.Roster.classes(ns.Compat.expansion())
       host.rows = {}
@@ -207,21 +229,28 @@ function Book.collection(kind, heading)
         row:SetPoint("TOPLEFT", host, "TOPLEFT", 12, -36 - (i - 1) * 29)
         row.key = key
         local color = kind == "class" and RAID_CLASS_COLORS and RAID_CLASS_COLORS[key]
-        color = color and { color.r, color.g, color.b } or Theme.INK
-        row.label = text(row, unlocked and display(entry, kind) or "???", -4, 14, color)
+        color = color and Theme.onParchment({ color.r, color.g, color.b }) or Theme.INK
+        -- Font flags have no italic; faded ink carries the locked look.
+        row.label = text(row, unlocked and display(entry, kind) or "???", -4, 15, unlocked and color or Theme.INK_FADED)
         row.label:SetWidth(280)
-        row.count = text(row, unlocked and tostring(counts.kills) or "???", -4, 14)
+        row.count = text(row, unlocked and tostring(counts.kills) or "???", -4, 15, not unlocked and Theme.INK_FADED or nil)
         row.count:SetPoint("TOPLEFT", row, "TOPLEFT", 300, -4)
         row.count:SetWidth(54)
         row.count:SetJustifyH("RIGHT")
-        if not unlocked then
-          -- Font flags have no italic; fading carries the locked look.
-          row:SetAlpha(0.45)
+        Book.highlight(row)
+        row.icon = nil
+        if kind == "class" then
+          row.label:SetPoint("TOPLEFT", row, "TOPLEFT", 34, -4)
+          row.label:SetWidth(258)
+          local coords = unlocked and CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[key]
+          if coords then
+            row.icon = region(row, "Texture")
+            row.icon:SetTexture(Theme.media.classIcons)
+            row.icon:SetTexCoord(unpack(coords))
+            row.icon:SetSize(18, 18)
+            row.icon:SetPoint("TOPLEFT", row, "TOPLEFT", 10, -4)
+          end
         end
-        local rule = region(row, "Texture")
-        rule:SetColorTexture(0.48, 0.34, 0.18, 0.2)
-        rule:SetSize(366, 1)
-        rule:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT")
         row:SetScript("OnClick", function() Book.open(section, key) end)
         row:Show()
         host.rows[#host.rows + 1] = row
@@ -236,31 +265,32 @@ function Book.collection(kind, heading)
         host.prompt = text(host, "Slay one to fill this page.", -42)
         return
       end
-      text(host, display(entry, kind):upper(), 0, 20, Theme.BLOOD)
-      host.stats = text(host, "Slain: " .. counts.kills .. " · Slain by: " .. counts.deaths, -38)
+      text(host, display(entry, kind), 0, 20, Theme.BLOOD)
+      host.stats = text(host, "Slain: " .. counts.kills, -38)
+      text(host, "Slain by: " .. counts.deaths, -60)
       local count, tier, name = ns.Titles.progress(db, kind, key)
       local bar = region(host, "StatusBar")
-      bar:SetPoint("TOPLEFT", host, "TOPLEFT", 12, -65)
-      bar:SetSize(366, 7)
-      bar:SetStatusBarTexture(Theme.media.flat)
+      bar:SetPoint("TOPLEFT", host, "TOPLEFT", 12, -90)
+      bar:SetSize(366, 10)
+      bar:SetStatusBarTexture(Theme.media.statusBar)
       bar:SetStatusBarColor(unpack(Theme.BLOOD))
       bar:SetMinMaxValues(0, tier or math.max(1, count))
       bar:SetValue(count)
       local bg = region(bar, "Texture")
       bg:SetAllPoints()
-      bg:SetColorTexture(unpack(Theme.PARCHMENT_DARK))
-      text(host, tier and ("Next title at " .. tier .. ": " .. name) or "Every title earned", -85, 13)
-      text(host, "TITLES EARNED", -132, 16, Theme.BLOOD)
-      local y, earned = -159, false
+      bg:SetColorTexture(Theme.INK[1], Theme.INK[2], Theme.INK[3], 0.15)
+      text(host, tier and ("Next title at " .. tier .. ": " .. name) or "Every title earned", -110, 14)
+      text(host, "Titles Earned", -150, 16)
+      local y, earned = -177, false
       for _, n in ipairs(ns.Data.Titles.TIERS) do
         local id = kind .. ":" .. key .. ":" .. n
         if db.titles[id] ~= nil then
-          text(host, ns.Titles.name(id) .. " (" .. n .. ")", y, 13)
+          text(host, ns.Titles.name(id) .. " (" .. n .. ")", y, 14)
           y, earned = y - 24, true
         end
       end
-      if not earned then text(host, "None yet", y, 13); y = y - 24 end
-      text(host, "MOST SLAIN", y - 16, 16, Theme.BLOOD)
+      if not earned then text(host, "None yet", y, 14); y = y - 24 end
+      text(host, "Most Slain", y - 16, 16)
       y = y - 45
       local players = {}
       for guid, rec in pairs(db.players) do
@@ -274,7 +304,11 @@ function Book.collection(kind, heading)
       end)
       for i = 1, math.min(5, #players) do
         local rec = players[i].rec
-        text(host, (rec.name or "Unknown") .. (rec.realm and ("-" .. rec.realm) or "") .. " — " .. rec.kills, y, 13)
+        text(host, (rec.name or "Unknown") .. (rec.realm and ("-" .. rec.realm) or ""), y, 14):SetWidth(300)
+        local tally = text(host, tostring(rec.kills), y, 14)
+        tally:SetPoint("TOPLEFT", host, "TOPLEFT", 324, y)
+        tally:SetWidth(54)
+        tally:SetJustifyH("RIGHT")
         y = y - 24
       end
       host:SetHeight(math.max(420, -y + 16))

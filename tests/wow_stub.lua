@@ -11,6 +11,7 @@ env.Settings = {
 }
 env.UISpecialFrames = {}
 env.RAID_CLASS_COLORS = { MAGE = { r = 0.25, g = 0.78, b = 0.92 } }
+env.CLASS_ICON_TCOORDS = { MAGE = { 0.25, 0.49609375, 0, 0.25 } }
 
 local clock = 100
 local noop = function() end
@@ -118,6 +119,7 @@ methods.GetScale = function(self) return self._scale end
 methods.EnableMouse = function(self, on) self._mouse = on end
 methods.SetFrameStrata = function(self, s) self._strata = s end
 methods.GetFrameStrata = function(self) return self._strata or "MEDIUM" end
+methods.SetBackdrop = function(self, backdrop) self._backdrop = backdrop end
 methods.SetFrameLevel = function(self, n) self._level = n end
 methods.GetFrameLevel = function(self) return self._level end
 methods.SetParent = function(self, parent) self._parent = parent end

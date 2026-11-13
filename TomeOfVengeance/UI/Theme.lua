@@ -5,7 +5,8 @@ ns.UI = ns.UI or {}
 local Theme = {
   PARCHMENT_LIGHT = { 0.953, 0.890, 0.749 },
   PARCHMENT_DARK = { 0.886, 0.788, 0.576 },
-  INK = { 0.231, 0.149, 0.078 },
+  INK = { 0.16, 0.10, 0.05 },
+  INK_FADED = { 0.34, 0.25, 0.16 },
   BLOOD = { 0.541, 0.110, 0.063 },
   GOLD = { 0.788, 0.635, 0.290 },
   GOLD_TEXT = { 1, 0.906, 0.627 },
@@ -18,18 +19,29 @@ local Theme = {
     leather = "Interface\\AchievementFrame\\UI-Achievement-AchievementBackground",
     goldBorder = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border",
     toastBorder = "Interface\\DialogFrame\\UI-DialogBox-Border",
+    statusBar = "Interface\\TargetingFrame\\UI-StatusBar",
+    classIcons = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes",
   },
 }
 
-function Theme.font(size, smallcaps)
-  local name = "TomeOfVengeance_Font" .. size .. (smallcaps and "SC" or "")
+-- Headings use the quest-title face (Morpheus), so the book reads like Blizzard's own.
+function Theme.font(size, outline, heading)
+  local name = "TomeOfVengeance_Font" .. size .. (outline and "SC" or "") .. (heading and "H" or "")
   local f = _G[name]
   if not f then
     f = CreateFont(name)
-    local path, _, flags = GameFontNormal:GetFont()
-    f:SetFont(path, size, smallcaps and "OUTLINE" or (flags or ""))
+    local base = heading and QuestTitleFont or GameFontNormal
+    local path, _, flags = base:GetFont()
+    f:SetFont(path, size, outline and "OUTLINE" or (flags or ""))
   end
   return f
+end
+
+-- Class colours are tuned for dark backgrounds; darken bright ones, keeping hue, so they read on parchment.
+function Theme.onParchment(c)
+  local lum = 0.299 * c[1] + 0.587 * c[2] + 0.114 * c[3]
+  local scale = lum > 0.2 and 0.2 / lum or 1
+  return { c[1] * scale, c[2] * scale, c[3] * scale }
 end
 
 local function colorTexture(tex, c, a)

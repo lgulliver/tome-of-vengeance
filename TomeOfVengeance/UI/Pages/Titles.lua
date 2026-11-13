@@ -4,7 +4,7 @@ local Book, Theme = ns.UI.Book, ns.UI.Theme
 Book.registerSection("titles", {
   label = "titles", order = 5,
   buildIndex = function(host, db)
-    Book.text(host, "EARNED TITLES", 0, 20, Theme.BLOOD)
+    Book.text(host, "Earned Titles", 0, 20, Theme.BLOOD)
     local y = -38
     host.rows = {}
     for _, group in ipairs({ { "total", "Overall" }, { "race", "Races" }, { "class", "Classes" }, { "special", "Deeds" } }) do
@@ -17,13 +17,14 @@ Book.registerSection("titles", {
         return an == bn and a < b or an < bn
       end)
       if #ids > 0 then
-        Book.text(host, group[2]:upper(), y, 16, Theme.BLOOD)
+        Book.text(host, group[2], y, 16)
         y = y - 28
         for _, id in ipairs(ids) do
           local row = Book.region(host, "Button")
           row:SetSize(366, 28)
           row:SetPoint("TOPLEFT", host, "TOPLEFT", 12, y)
           row.key = id
+          Book.highlight(row)
           Book.text(row, (db.activeTitle == id and "• " or "") .. ns.Titles.name(id), 0)
           row:SetScript("OnClick", function() ns.App.db.activeTitle = id; Book.open("titles", id) end)
           host.rows[#host.rows + 1] = row
@@ -36,8 +37,8 @@ Book.registerSection("titles", {
     host:SetHeight(math.max(420, -y + 20))
   end,
   buildEntry = function(host, db)
-    Book.text(host, "YOUR EPITHET", 0, 20, Theme.BLOOD)
+    Book.text(host, "Your Epithet", 0, 20, Theme.BLOOD)
     Book.text(host, db.activeTitle and ns.Titles.name(db.activeTitle) or "Choose an earned title.", -42)
-    Book.text(host, "Titles live within the Tome.", -80, 13)
+    Book.text(host, "Titles live within the Tome.", -80, 14)
   end,
 })

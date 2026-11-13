@@ -8,7 +8,7 @@ local function button(host, label, y, click)
   local control = Book.region(host, "Button")
   control:SetSize(350, 28)
   control:SetPoint("TOPLEFT", host, "TOPLEFT", 12, y)
-  control.label = Book.text(control, label, -3, 14, Theme.BLOOD)
+  control.label = Book.text(control, label, -3, 15, Theme.BLOOD)
   control:SetScript("OnClick", click)
   return control
 end
@@ -17,7 +17,7 @@ function Page.create()
   if Page.category or not Settings or not Settings.RegisterCanvasLayoutCategory or not Settings.RegisterAddOnCategory then return end
   local panel = CreateFrame("Frame")
   panel:SetSize(390, 420)
-  Book.text(panel, "TOME OF VENGEANCE", -20, 20, Theme.BLOOD)
+  Book.text(panel, "Tome of Vengeance", -20, 20, Theme.BLOOD)
   panel.launch = button(panel, "Open the Tome settings", -65, function() Book.open("settings") end)
   Page.category = Settings.RegisterCanvasLayoutCategory(panel, "Tome of Vengeance")
   Settings.RegisterAddOnCategory(Page.category)
@@ -26,7 +26,7 @@ end
 Book.registerSection("settings", {
   label = "settings", order = 6,
   buildIndex = function(host, db)
-    Book.text(host, "PREFERENCES", 0, 20, Theme.BLOOD)
+    Book.text(host, "Preferences", 0, 20, Theme.BLOOD)
     host.controls = {}
     for i, entry in ipairs({ { "alerts", "Nemesis alerts" }, { "sound", "Alert sounds" }, { "minimap", "Minimap button" } }) do
       local key = entry[1]
@@ -68,11 +68,11 @@ Book.registerSection("settings", {
     Book.text(host, "2                                              10", -240, 12)
   end,
   buildEntry = function(host, db)
-    Book.text(host, "SOUNDS & RECORDS", 0, 20, Theme.BLOOD)
+    Book.text(host, "Sounds & Records", 0, 20, Theme.BLOOD)
     host.sounds = {}
     for i, kind in ipairs({ "unlock", "title", "nemesis" }) do
       local y = -38 - (i - 1) * 90
-      Book.text(host, kind:upper(), y, 16, Theme.BLOOD)
+      Book.text(host, kind:sub(1, 1):upper() .. kind:sub(2), y, 16)
       local list = ns.Data.Sounds.LIST[kind]
       local function selected()
         local key = ns.Data.Sounds.forKind(kind, ns.App.db.settings)
