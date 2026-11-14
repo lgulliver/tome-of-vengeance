@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Release packaging only: CurseForge uploads now match game versions by patch name and type, so every client's zip is published. No addon changes.
+
 ## 0.1.0
 
 First release, for Retail, Forever, Classic Era, Burning Crusade Anniversary and Mists of Pandaria Classic.

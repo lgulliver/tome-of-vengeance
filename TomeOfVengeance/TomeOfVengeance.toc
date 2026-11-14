@@ -2,7 +2,7 @@
 ## Title: Tome of Vengeance
 ## Notes: Remember every foe you've slain and every foe who slew you.
 ## SavedVariables: TomeOfVengeanceDB
-## Version: 0.1.0
+## Version: 0.1.1
 ## AddonCompartmentFunc: TomeOfVengeance_OnCompartmentClick
 
 # Data files precede Core files as they are implemented.
