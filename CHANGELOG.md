@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Release packaging only: releases now publish to Wago as well as CurseForge and GitHub. No addon changes.
+
 ## 0.1.2
 
 - Release packaging only: CurseForge now gets a single file tagged for every client. It rejected the per-client files as duplicates of the Retail one. No addon changes.

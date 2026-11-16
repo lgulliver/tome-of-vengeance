@@ -13,6 +13,8 @@ jobs:
     env:
       CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
       CF_PROJECT_ID: ${{ vars.CF_PROJECT_ID }}
+      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+      WAGO_PROJECT_ID: ${{ vars.WAGO_PROJECT_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -22,6 +24,7 @@ jobs:
         run: bash .github/scripts/build-release.sh
 
       - name: Publish GitHub release
+        id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -41,3 +44,7 @@ jobs:
       - name: Upload to CurseForge
         if: env.CF_API_TOKEN != '' && env.CF_PROJECT_ID != ''
         run: bash .github/scripts/upload-curseforge.sh
+
+      - name: Upload to Wago
+        if: ${{ !cancelled() && steps.release.outcome == 'success' && env.WAGO_API_TOKEN != '' && env.WAGO_PROJECT_ID != '' }}
+        run: bash .github/scripts/upload-wago.sh

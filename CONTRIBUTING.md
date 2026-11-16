@@ -65,7 +65,7 @@ The [Warcraft Wiki TOC table](https://warcraft.wiki.gg/wiki/Interface_version) c
 
 Use one comma-list TOC, matching Azeroth Ante. The [TOC documentation](https://warcraft.wiki.gg/wiki/TOC_format) recommends comma-delimited interfaces where possible. All packages contain the same addon and load order. No flavour-specific Lua is needed.
 
-[WowUp's own documentation](https://wowup.io/guide/get-addons/overview) confirms these Classic asset suffixes for GitHub installs. Wago's developer page could not be fetched, so these are provisional Wago routing names, not verified Wago acceptance.
+[WowUp's own documentation](https://wowup.io/guide/get-addons/overview) confirms these Classic asset suffixes for GitHub installs.
 
 ### Verification TODOs before publishing
 
@@ -73,12 +73,11 @@ Use one comma-list TOC, matching Azeroth Ante. The [TOC documentation](https://w
 |------|------------------------------|
 | Confirm each client interface in game | Run `/dump select(4, GetBuildInfo())` on Era, Anniversary and Mists; wiki search snapshots were available, direct patch pages returned HTTP 403. Update TOC and explicit script table together if changed. |
 | Record Classic CurseForge type IDs | `https://wow.curseforge.com/api/game/wow/versions` was inaccessible via web tools; shell network DNS also failed. With authorized credentials, inspect each exact `apiVersion` record and record its `gameVersionTypeID` here. No CurseForge call was made successfully during implementation. |
-| Confirm Wago suffix routing | Developer page unavailable. Confirm `.zip`, `-forever.zip`, `-classic.zip`, `-bc.zip`, `-mists.zip` in Wago project setup before enabling webhook; rename table suffixes if required. |
 | Verify live release targets | Recheck patch availability immediately before tagging. Upload code validates exact interface and patch against the live CurseForge list; packaging itself is offline and does not prove a client is live. |
 
 ## Releasing
 
-The tag-triggered workflow follows Azeroth Ante's pinned checkout action, generated GitHub release notes, optional CurseForge upload and Wago webhook model. Project creation and publishing remain maintainer actions after in-game verification.
+The tag-triggered workflow follows Azeroth Ante's pinned checkout action, generated GitHub release notes, optional CurseForge and Wago uploads. Project creation and publishing remain maintainer actions after in-game verification.
 
 The explicit table in `.github/scripts/build-release.sh` defines each flavour's interfaces, suffix and known CurseForge type. Five-digit interfaces are never used to infer flavour. Classic CurseForge type IDs are discovered only from unique live records matching both exact `apiVersion` and patch name, excluding Retail and Forever types. Missing or ambiguous metadata skips that flavour with a warning; other uploads continue. Network or upload failures fail the job after uploads have been attempted.
 
@@ -94,6 +93,6 @@ unzip -p /tmp/tov-release/TomeOfVengeance-0.1.0-classic.zip TomeOfVengeance/Tome
 
 Each zip contains only `TomeOfVengeance/`, including `LICENSE`. Source TOC version and every classified interface are checked before building; unknown interfaces fail rather than silently disappearing. Use a fresh output directory for each local tag. CI uses a clean checkout and sets `VERSION`, `STABILITY`, `DIST_DIR` and `NOTES_FILE` through `GITHUB_ENV` for later steps.
 
-Configure `CF_API_TOKEN` as an Actions secret and `CF_PROJECT_ID` as an Actions variable to enable CurseForge. The upload needs curl and jq; it sends one file per flavour with only that flavour's game-version IDs. Without both values the step is skipped.
+Configure `CF_API_TOKEN` as an Actions secret and `CF_PROJECT_ID` as an Actions variable to enable CurseForge. The upload needs curl and jq; every flavour's zip is identical and CurseForge rejects duplicates, so it sends the Retail zip once, tagged with every flavour's game-version IDs. Without both values the step is skipped.
 
-After confirming routing, configure the Wago project for multiple game versions and its GitHub release webhook at `https://addons.wago.io/api/github/webhook`. No Wago credentials are stored in this workflow. Neither project setup nor a release is created by local packaging.
+Configure `WAGO_API_TOKEN` as an Actions secret and `WAGO_PROJECT_ID` (the project ID from the Wago developer dashboard) as an Actions variable to enable Wago. It uploads the Retail zip once with `supported_<game>_patches` for each flavour (`retail`, `forever`, `classic`, `bc`, `mop`), matched against the live list at `https://addons.wago.io/api/data/game`. It runs even if the CurseForge upload fails. Without both values the step is skipped. Neither project setup nor a release is created by local packaging.

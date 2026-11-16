@@ -56,7 +56,7 @@ Classic and Forever show races from opposing factions the account has played, pl
 - Retail arena and rated-battleground tracking is best-effort. Restricted or secret combat-log events are skipped.
 - Titles are addon-only; they do not grant Blizzard character titles. Title text is English in v1.
 - Death attribution uses the last qualifying attacker, not a replay of the fight.
-- Classic release metadata and Wago routing still need the checks listed in [CONTRIBUTING.md](CONTRIBUTING.md).
+- Classic release metadata still needs the checks listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Development
 

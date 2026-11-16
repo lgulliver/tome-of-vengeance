@@ -26,6 +26,9 @@ jobs:
       - name: CurseForge version matching
         run: bash .github/scripts/test-upload-curseforge.sh
 
+      - name: Wago patch matching
+        run: bash .github/scripts/test-upload-wago.sh
+
       - name: UI smoke
         run: |
           if [ -f tests/smoke_ui.lua ]; then
