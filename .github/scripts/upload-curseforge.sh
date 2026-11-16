@@ -39,31 +39,35 @@ flavour_versions() {
   echo "$ids"
 }
 
+# Every flavour's zip is byte-identical (one multi-interface TOC), and CurseForge rejects
+# duplicate files, so upload the retail zip once tagged with every flavour's game versions.
 upload() {
-  local site=https://wow.curseforge.com versions failed=0
+  local site=https://wow.curseforge.com versions failed=0 all='[]'
   local flavour suffix interfaces type_id game_versions archive metadata
   versions=$(curl -fsS -H "x-api-token: $CF_API_TOKEN" "$site/api/game/wow/versions")
   jq -e 'type == "array"' <<< "$versions" > /dev/null
   while IFS='|' read -r flavour suffix interfaces type_id; do
     game_versions=$(flavour_versions "$versions" "$interfaces" "$type_id")
     if [[ "$game_versions" == '[]' ]]; then
-      echo "error: no CurseForge game version for $flavour; not uploaded" >&2
+      echo "error: no CurseForge game version for $flavour; it will be missing from the upload" >&2
       failed=1
       continue
     fi
-    archive="$DIST_DIR/TomeOfVengeance-${VERSION}${suffix}.zip"
-    metadata=$(jq -n --arg name "$VERSION ($flavour)" --arg release "$STABILITY" \
-      --argjson gameVersions "$game_versions" --rawfile changelog "$NOTES_FILE" \
-      '{displayName: $name, releaseType: $release, gameVersions: $gameVersions,
-        changelogType: "markdown", changelog: $changelog}')
-    echo "Uploading $archive ($flavour, $STABILITY, game versions $game_versions)"
-    if ! curl -fsS -H "x-api-token: $CF_API_TOKEN" -F "metadata=$metadata" \
-      -F "file=@$archive" "$site/api/projects/$CF_PROJECT_ID/upload-file"; then
-      echo "error: CurseForge upload failed for $flavour; continuing other flavours" >&2
-      failed=1
-    fi
-    echo
+    all=$(jq -c --argjson add "$game_versions" '. + $add | unique' <<< "$all")
   done < <(flavours)
+  if [[ "$all" == '[]' ]]; then
+    echo "error: no CurseForge game versions found; not uploaded" >&2
+    return 1
+  fi
+  archive="$DIST_DIR/TomeOfVengeance-${VERSION}.zip"
+  metadata=$(jq -n --arg name "$VERSION" --arg release "$STABILITY" \
+    --argjson gameVersions "$all" --rawfile changelog "$NOTES_FILE" \
+    '{displayName: $name, releaseType: $release, gameVersions: $gameVersions,
+      changelogType: "markdown", changelog: $changelog}')
+  echo "Uploading $archive ($STABILITY, game versions $all)"
+  curl -fsS -H "x-api-token: $CF_API_TOKEN" -F "metadata=$metadata" \
+    -F "file=@$archive" "$site/api/projects/$CF_PROJECT_ID/upload-file"
+  echo
   return "$failed"
 }
 

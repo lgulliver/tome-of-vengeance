@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Release packaging only: CurseForge now gets a single file tagged for every client. It rejected the per-client files as duplicates of the Retail one. No addon changes.
+
 ## 0.1.1
 
 - Release packaging only: CurseForge uploads now match game versions by patch name and type, so every client's zip is published. No addon changes.
